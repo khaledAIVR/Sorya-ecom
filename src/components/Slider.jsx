@@ -115,3 +115,5 @@ export const Slider = () => {
     </Container>
   );
 };
+
+export default Slider;
