@@ -1,18 +1,32 @@
+const bcrypt = require("bcrypt");
 const router = require("express").Router();
 const User = require("../models/User");
-const CryptoJS = require("crypto-js");
 const jwt = require("jsonwebtoken");
 const { verifyToken } = require("./verifyToken");
+
+async function generateHash(password) {
+  const salt = await bcrypt.genSalt(12);
+  const hash = await bcrypt.hash(password, salt);
+  return hash;
+}
+async function comparePasswordHash(requestedPassword, hashedPassword) {
+  try {
+    const isValidPassword = await bcrypt.compare(
+      requestedPassword,
+      hashedPassword
+    );
+    return isValidPassword;
+  } catch (error) {
+    console.log(error);
+  }
+}
 
 //REGISTER
 router.post("/register", async (req, res) => {
   const newUser = new User({
     username: req.body.username,
     email: req.body.email,
-    password: CryptoJS.AES.encrypt(
-      req.body.password,
-      process.env.PASS_SEC
-    ).toString(),
+    password: await generateHash(req.body.password),
   });
 
   try {
@@ -31,14 +45,13 @@ router.post("/login", async (req, res) => {
 
     !user && res.status(401).json("Wrong credentials!");
 
-    const hashedPassword = CryptoJS.AES.decrypt(
-      user.password,
-      process.env.PASS_SEC
+    isValidPassword = await comparePasswordHash(
+      req.body.password,
+      user.password
     );
-    const OriginalPassword = hashedPassword.toString(CryptoJS.enc.Utf8);
 
-    OriginalPassword !== req.body.password &&
-      res.status(401).json("Wrong credentials!");
+    isValidPassword === false && res.status(401).json("Wrong credentials!");
+
     const accessToken = jwt.sign(
       {
         id: user._id,
