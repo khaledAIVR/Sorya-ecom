@@ -36,7 +36,7 @@ const Wrapper = styled.div`
   height: 100%;
   display: flex;
   transition: all 1.5s ease;
-  transform: translateX(${(props) => props.slideIndex * -100}vw);
+  transform: translateX(${(props) => props.slideIndex * 100}vw);
 `;
 
 const Slide = styled.div`
@@ -81,11 +81,22 @@ const Button = styled.button`
 
 const Slider = () => {
   const [slideIndex, setSlideIndex] = useState(0);
+  const slidersCounter = sliderItems.length - 1;
   const handleClick = (direction) => {
     if (direction === "left") {
-      setSlideIndex(slideIndex > 0 ? slideIndex - 1 : 2);
+      if (slideIndex !== 0)
+        setSlideIndex((currentSlideIndex) => currentSlideIndex + 1);
+      else {
+        //if it's the first item, go to the last
+        setSlideIndex(slidersCounter * -1);
+      }
     } else {
-      setSlideIndex(slideIndex < 2 ? slideIndex + 1 : 0);
+      if (slideIndex !== slidersCounter * -1)
+        setSlideIndex((currentSlideIndex) => currentSlideIndex - 1);
+      else {
+        //if it's the last item go the first
+        setSlideIndex(0);
+      }
     }
   };
 
